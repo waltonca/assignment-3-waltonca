@@ -2,6 +2,8 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <cctype> // for std::isalnum
+#include <algorithm>  // for std::transform and std::any_of
 
 struct Node {
   std::string _data;  // save words
@@ -23,6 +25,10 @@ public:
       std::vector<std::string> nodes;
       collectInOrder(_root, nodes);  // 收集节点数据
       _root = buildBalancedTree(nodes, 0, nodes.size() - 1);  // 构建平衡树
+  }
+
+  bool search(const std::string& word) const {
+      return searchRecursively(_root, word);
   }
 
   // Overloading the << operator prints all words in the tree
@@ -61,16 +67,66 @@ private:
       return root;
   }
 
+  bool searchRecursively(Node* node, const std::string& word) const {
+      if (node == nullptr) return false;
+      if (word == node->_data) return true;
+      if (word < node->_data) return searchRecursively(node->_left, word);
+      return searchRecursively(node->_right, word);
+  }
+
   void printTree(Node* node, std::ostream& output, int indent) const {
       if (node == nullptr) return;
-
       printTree(node->_right, output, indent + 1);
-
       output << std::string(4 * indent, ' ') << node->_data << std::endl;
-
       printTree(node->_left, output, indent + 1);
   }
 };
+
+// Convert a word to lowercase and check if it contains digits
+std::string toLowercase(const std::string& str) {
+    std::string lowerStr = str;
+    std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(), ::tolower);
+    return lowerStr;
+}
+
+bool containsDigits(const std::string& str) {
+    return std::any_of(str.begin(), str.end(), ::isdigit);
+}
+
+std::vector<std::string> extractWords(const std::string& filename) {
+    std::ifstream file(filename);
+    std::vector<std::string> words;
+    std::string line;
+
+    if (!file.is_open()) {
+        std::cerr << "Could not open the file: " << filename << std::endl;
+        return words;
+    }
+
+    while (std::getline(file, line)) {
+        std::string word;
+        for (char ch : line) {
+            if (std::isalnum(ch)) {
+                word += ch;
+            } else if (!word.empty()) {
+                word = toLowercase(word);
+                if (!containsDigits(word)) {
+                    words.push_back(word);
+                }
+                word.clear();
+            }
+        }
+        if (!word.empty()) {
+            word = toLowercase(word);
+            if (!containsDigits(word)) {
+                words.push_back(word);
+            }
+        }
+    }
+
+    file.close();
+    return words;
+}
 
 int main(int argc, char* argv[]) {
     // Check if two arguments are provided
@@ -108,10 +164,20 @@ int main(int argc, char* argv[]) {
     // balance bst
     bst.balance();
 
-    std::cout << "Binary Search Tree (In-Order): " << bst << std::endl;
+    std::cout << "Binary Search Tree (In-Order): \n" << bst << std::endl;
 
     // Close files
     dictionaryFile.close();
+
+    // Extract words from test file
+    std::vector<std::string> testWords = extractWords(argv[2]);
+    std::cout << "Misspelled words:" << std::endl;
+    for (const auto& testWord : testWords) {
+        if (!bst.search(testWord)) {
+            std::cout << testWord << std::endl;
+        }
+    }
+
     testFile.close();
 
     return 0;
