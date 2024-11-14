@@ -37,6 +37,18 @@ public:
       return output;
   }
 
+  // Save the BST to a file
+  void saveToFile(const std::string& filename) const {
+      std::ofstream file(filename);
+      if (!file.is_open()) {
+          std::cerr << "Error: Could not open file " << filename << std::endl;
+          return;
+      }
+      printTree(_root, file, 0);
+      file.close();
+      std::cout << "Binary Search Tree has been saved to " << filename << std::endl;
+  }
+
 private:
   // Recursive insertion of strings
   Node* insertRecursively(Node* node, const std::string& word) {
@@ -76,9 +88,9 @@ private:
 
   void printTree(Node* node, std::ostream& output, int indent) const {
       if (node == nullptr) return;
-      printTree(node->_right, output, indent + 1);
+      printTree(node->_right, output, indent + 2);
       output << std::string(4 * indent, ' ') << node->_data << std::endl;
-      printTree(node->_left, output, indent + 1);
+      printTree(node->_left, output, indent + 2);
   }
 };
 
@@ -165,6 +177,9 @@ int main(int argc, char* argv[]) {
     bst.balance();
 
     std::cout << "Binary Search Tree (In-Order): \n" << bst << std::endl;
+
+    // Save Binary Search Tree to output file
+    bst.saveToFile("../output/bst.txt");
 
     // Close files
     dictionaryFile.close();
