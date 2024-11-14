@@ -23,8 +23,8 @@ public:
 
   void balance() {
       std::vector<std::string> nodes;
-      collectInOrder(_root, nodes);  // 收集节点数据
-      _root = buildBalancedTree(nodes, 0, nodes.size() - 1);  // 构建平衡树
+      collectInOrder(_root, nodes);  // Collecting node data
+      _root = buildBalancedTree(nodes, 0, nodes.size() - 1);  // build a Balanced Tree
   }
 
   bool search(const std::string& word) const {
