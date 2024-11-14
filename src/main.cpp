@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <vector>
 
 struct Node {
   std::string _data;  // save words
@@ -18,6 +19,19 @@ public:
       _root = insertRecursively(_root, word);
   }
 
+  void balance() {
+      std::vector<std::string> nodes;
+      collectInOrder(_root, nodes);  // 收集节点数据
+      _root = buildBalancedTree(nodes, 0, nodes.size() - 1);  // 构建平衡树
+  }
+
+  // Overloading the << operator prints all words in the tree
+  friend std::ostream& operator<<(std::ostream& output, BST& bst) {
+      bst.printTree(bst._root, output, 0);
+      return output;
+  }
+
+private:
   // Recursive insertion of strings
   Node* insertRecursively(Node* node, const std::string& word) {
       if (node == nullptr) {
@@ -31,13 +45,22 @@ public:
       return node;
   }
 
-  // Overloading the << operator prints all words in the tree
-  friend std::ostream& operator<<(std::ostream& output, BST& bst) {
-      bst.printTree(bst._root, output, 0);
-      return output;
+  void collectInOrder(Node* node, std::vector<std::string>& nodes) const {
+      if (node == nullptr) return;
+      collectInOrder(node->_left, nodes);
+      nodes.push_back(node->_data);
+      collectInOrder(node->_right, nodes);
   }
 
-private:
+  Node* buildBalancedTree(const std::vector<std::string>& nodes, int start, int end) {
+      if (start > end) return nullptr;
+      int mid = (start + end) / 2;
+      Node* root = new Node(nodes[mid]);
+      root->_left = buildBalancedTree(nodes, start, mid - 1);
+      root->_right = buildBalancedTree(nodes, mid + 1, end);
+      return root;
+  }
+
   void printTree(Node* node, std::ostream& output, int indent) const {
       if (node == nullptr) return;
 
@@ -81,6 +104,9 @@ int main(int argc, char* argv[]) {
     while (dictionaryFile >> word) {
         bst.insert(word);
     }
+
+    // balance bst
+    bst.balance();
 
     std::cout << "Binary Search Tree (In-Order): " << bst << std::endl;
 
